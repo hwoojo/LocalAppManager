@@ -12,6 +12,13 @@ license = "MIT"
 authors = [{ name = "LocalAppManager contributors" }]
 dependencies = []
 
+[project.urls]
+Repository = "https://github.com/hwoojo/LocalAppManager"
+Issues = "https://github.com/hwoojo/LocalAppManager/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
 [project.scripts]
 localapp = "localapp_manager.cli:main"
 localapp-gui = "localapp_manager.gui:main"

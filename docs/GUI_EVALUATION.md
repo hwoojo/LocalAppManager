@@ -1,88 +1,64 @@
-# GTK4/libadwaita GUI evaluation
+# GUI status and architecture
 
-Date: 2026-07-18
+LocalAppManager includes a GTK4/libadwaita interface, launched with
+`localapp-gui`. See the [README](../README.md) for installation and system
+requirements. The current interface is primarily Korean.
 
-## Original Phase 8 decision
+## Available workflows
 
-Do not start a full GUI implementation yet. The domain backend is ready to be
-shared, but two user-interface adapters should be added first: asynchronous
-process execution and cancellable progress reporting for managed folder copies.
-The CLI is the stable primary interface until those adapters exist.
+The GUI supports application listing and details, AppImage/executable
+registration, portable-folder candidate selection, existing Python project
+registration, launch, editing, removal confirmation, doctor diagnostics and
+repair, and Gear Lever discovery/import.
 
-This decision follows the Phase 8 scope: evaluate a GUI only after the backend
-is stable, without expanding the project into an unverified GUI implementation.
+Gear Lever discovery reads existing desktop integration. Importing a discovered
+application creates a LocalAppManager manifest while preserving the externally
+owned Gear Lever integration; it does not create a second desktop entry.
 
-## Environment check
+## Shared backend
 
-The current Fedora environment can import the required bindings:
+The GUI calls the same domain services as the CLI. It does not infer removal
+targets or user-data locations: removal and diagnostics use backend plans and
+issue models.
 
-- PyGObject 3.56.3
-- GTK 4.22.4
-- libadwaita 1.9.2
+| Workflow | Backend API |
+| --- | --- |
+| Application list | `ManifestStore.list_manifests()` |
+| Details | `ManifestStore.load()` |
+| AppImage/executable registration | `register_file()` |
+| Portable-folder registration | `inspect_portable_folder()`, `register_portable_folder()` |
+| Python project registration | `register_python_project()` |
+| Edit | `edit_app()` |
+| Removal | `build_removal_plan()`, `execute_removal()` |
+| Diagnostics and repair | `diagnose()`, `repair()` |
+| Launch | `launch_app()` |
 
-These are system dependencies and should remain outside the Python runtime
-dependency list. Fedora packaging or setup documentation must declare them when
-the GUI is implemented.
+`launch_app()` starts an argv-based process without waiting for its exit.
+Registration/import operations use worker threads and return UI updates through
+GLib, keeping file-copy work off the GTK main thread. The backend and CLI do not
+require GTK bindings; `gui.py` imports system PyGObject, GTK4, and libadwaita.
 
-## Follow-up implementation
+## Known limitations and verification
 
-After Phase 8, the user explicitly requested the graphical application. A
-GTK4/libadwaita front end is now implemented in `gui.py` and exposed as
-`localapp-gui`. Non-blocking process launch is provided by `launch_app()`, and
-registration/import work runs on worker threads so the GTK main loop remains
-responsive.
+- Large managed copies have no progress percentage or cancellation checkpoints.
+- The GUI uses structured inspection results for executable selection.
+  Registration errors could also expose structured candidate-selection data for
+  other callers instead of listing choices only in an error message.
+- `tests/test_gui.py` checks module import and the application ID without creating
+  a window. It does not validate interactive workflows or rendered layout.
+- Automated interaction and screenshot coverage, broader environment testing,
+  and distribution packaging remain roadmap work.
+- Flatpak portal requirements have not been settled.
 
-The GUI supports listing, details, file/folder/Python registration, portable
-candidate selection, launch, edit, removal confirmation, doctor reporting and
-repair, and Gear Lever import. Gear Lever desktop integration remains externally
-owned and is never deleted by LocalAppManager.
+Changes to the UI need manual verification in a graphical session in addition
+to the existing tests. See [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-Progress percentages and cancellation checkpoints for very large managed folder
-copies remain future work.
+## Historical context
 
-## Backend readiness
-
-Only `cli.py` imports `argparse`. Models, storage, importers, desktop generation,
-execution, removal, editing, migrations, and doctor diagnostics are reusable
-without importing the CLI.
-
-| GUI area | Existing backend API | Status |
-| --- | --- | --- |
-| Application list | `ManifestStore.list_manifests()` | Ready |
-| Details | `ManifestStore.load()` | Ready |
-| AppImage/executable registration | `register_file()` | Ready |
-| Portable-folder candidate selection | `inspect_portable_folder()` and `register_portable_folder()` | Ready |
-| Python project registration | `register_python_project()` | Ready |
-| Edit form | `edit_app()` | Ready |
-| Removal confirmation | `build_removal_plan()` and `execute_removal()` | Ready |
-| Health view | `diagnose()` and `repair()` | Ready |
-| Launch action | `launch_app()` | Ready |
-| Large managed copy | background worker around importer file operations | Responsive; progress/cancellation still pending |
-
-## Proposed minimal screens
-
-1. Application list with kind, mode, and health badge.
-2. Details page showing command, managed paths, and protected external paths.
-3. Registration assistant with explicit mode and candidate selection.
-4. Removal dialog that renders the existing removal plan before confirmation.
-5. Doctor page separating repairable issues from manual intervention.
-6. Edit dialog limited to the settings already supported by `edit_app()`.
-
-The UI must not invent removal targets or infer user-data locations. It should
-render the backend plan and issue models directly.
-
-## Required work before GUI implementation
-
-- Provide a non-blocking launcher based on `Gio.Subprocess` or a worker adapter.
-- Add progress callbacks and cancellation checkpoints to portable-tree copying.
-- Expose structured registration-candidate errors rather than formatting all
-  choices into one error string.
-- Decide whether file chooser access needs Flatpak portals; do not add Flatpak
-  packaging until that decision is made.
-- Add UI-specific tests separately from backend tests.
-
-## Packaging boundary
-
-The CLI runtime remains standard-library-only. A future GUI extra/package may
-depend on system PyGObject, GTK4, and libadwaita, but those dependencies must not
-be pulled into the backend merely to make the GUI importable.
+The original evaluation, dated 2026-07-18, recommended deferring a full GUI until
+non-blocking launch and copy-progress adapters were available. A subsequent
+implementation added the GUI, non-blocking launch, and background registration.
+Copy progress and cancellation remain open; the earlier recommendation to avoid
+starting GUI implementation no longer describes the project status. The original
+environment recorded PyGObject 3.56.3, GTK 4.22.4, and libadwaita 1.9.2; these are
+historical observations, not a compatibility matrix.

@@ -1,123 +1,107 @@
 # LocalAppManager
 
-LocalAppManager is a Fedora/GNOME-first tool for tracking applications that
-live outside RPM, DNF, and Flatpak. It is designed around an explicit manifest:
-files created by LocalAppManager are recorded separately from user-owned source
-projects and data.
+Manage Linux applications installed outside RPM, DNF, and Flatpak: AppImages,
+standalone executables, portable folders, and existing Python projects.
+LocalAppManager provides a CLI and a GTK4/libadwaita GUI, with explicit records
+of the files it owns so removal can preserve your original projects and data.
 
-## Current status: backend, CLI, and GNOME GUI available
+The project is in early development (0.1.0), with Fedora/GNOME as its primary
+environment. The GUI currently uses Korean labels; the CLI uses English.
 
-The backend now supports linked and managed registration:
+## What it does
 
-- versioned application manifests and JSON serialization
-- deterministic application IDs with duplicate handling
-- centralized XDG-aware paths
-- atomic per-application manifest storage
-- explicit errors for invalid or damaged manifests
-- linked registration for AppImages and executable files
-- listing, JSON detail display, and argv-based execution without a shell
-- managed copies under `~/.local/opt/<app-id>/`
-- executable wrappers under `~/.local/bin/`
-- generated desktop entries under the XDG applications directory
-- optional managed icon copies under the XDG icons directory
-- exact-path rollback when registration fails
-- preview-first, manifest-driven safe removal
-- portable-folder inspection and linked/managed registration
-- existing Python project registration by script or module
-- health diagnostics, safe integration repair, editing, and schema migration
-- SHA-256 detection of manually modified managed files
+- Register apps in **linked** mode (use the original in place) or **managed** mode
+  (copy into `~/.local/opt/<app-id>/`). Python projects use linked mode only.
+- Create launch wrappers, desktop entries, and optional icon copies.
+- Launch apps, edit launch settings, and diagnose or repair integration files.
+- Preview removal before deleting explicitly recorded managed paths.
+- Import Gear Lever registrations while preserving their existing integration.
 
-Linked registration never copies or changes the executable source, but its
-wrapper, optional icon, and desktop entry are managed files. Removal never
-recursively deletes unexpected directory contents.
+It does not install dependencies, build source projects, manage system packages,
+or discover updates. Registered programs run with your normal user permissions.
 
-## Commands
+## Install from source
 
-```console
-localapp add ~/Applications/MyTool.AppImage
-localapp add ~/bin/my-tool --name "My Tool" --arg=--safe-mode
-localapp add ~/Downloads/MyTool.AppImage --mode managed --icon ~/Pictures/my-tool.png
-localapp add ~/Applications/PortableTool --executable bin/portable-tool
-localapp add ~/Projects/MyTool --kind python-project --python ~/Projects/MyTool/.venv/bin/python --module mytool
-localapp list
-localapp show my-tool
-localapp run my-tool -- --one "argument with spaces"
-localapp remove my-tool
-localapp remove my-tool --yes
-localapp edit my-tool --name "My Renamed Tool" --arg=--safe-mode --terminal
-localapp doctor
-localapp doctor my-tool --repair
-localapp import-gearlever
-```
+The CLI requires Linux and Python 3.11 or newer, with no third-party runtime
+dependencies. Run these commands as your normal user:
 
-`add` accepts only an existing executable file. A `.AppImage` suffix selects the
-AppImage kind; other files use the executable kind. Use `--kind` to override the
-automatic choice. `--mode linked` is the default; `--mode managed` copies the
-executable while preserving the original as external user-owned data. Name
-collisions receive stable suffixes such as `my-tool-2`.
-
-Desktop entries support `Name`, `Exec`, `Icon`, `Type`, `Terminal`, `Categories`,
-and `StartupNotify`. Use repeated `--category` options and
-`--no-startup-notify` to customize them.
-
-`remove` is preview-only unless `--yes` is supplied. The plan distinguishes
-existing managed paths, missing paths, preserved external inputs, and unsafe
-manifest paths. Unsafe paths block removal; a non-empty managed directory is
-left in place and keeps the manifest registered for recovery.
-
-For a portable folder, executable files, `bin` contents, desktop entries,
-common icons, and names similar to the folder are inspected. A single executable
-candidate is selected automatically. Multiple candidates are reported and must
-be resolved with a relative `--executable` path. Managed folder copies reject
-special files and links that escape the source tree.
-
-Python projects use Linked mode and an already existing interpreter. Select one
-entry form with `--script RELATIVE_PATH` or `--module DOTTED.NAME`; stored
-arguments, the working directory, and terminal preference are preserved. The
-manager does not create virtual environments or install dependencies.
-
-`edit` can replace the display name, stored arguments, working directory,
-terminal flag, categories, and startup-notification setting while updating the
-wrapper, desktop entry, and manifest together. `doctor` reports corrupt or old
-manifests, missing executables/icons/integration files, external-path loss,
-untracked or unsafe managed paths, content mismatches, and duplicate IDs.
-`doctor --repair` only regenerates safe integration files and persists supported
-manifest migrations; it does not recreate user data or dependencies.
-
-## Development
-
-Python 3.11 or newer is required. The runtime has no third-party dependencies.
-
-```console
-python -m pytest
-PYTHONPATH=src python -m localapp_manager --help
-```
-
-Installing the project creates the `localapp` command:
-
-```console
-python -m pip install -e .
+```sh
+git clone https://github.com/hwoojo/LocalAppManager.git
+cd LocalAppManager
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install .
 localapp --help
 ```
 
-## Safety boundary
+Activate this environment again in new terminals to use the installed commands.
+After updating the checkout, run `python -m pip install .` again. For editable
+installs and tests, see [Contributing](CONTRIBUTING.md).
 
-`managed_files` contains only paths created or copied by LocalAppManager.
-`external_paths` contains user-owned inputs that must be preserved by default.
-Removal operates only from these explicit records rather than guessing which
-files belong to an application. External paths are displayed in the removal
-plan but are never removal targets.
+### Optional GNOME GUI on Fedora
 
-## GUI status
+The GUI also needs system PyGObject, GTK 4.10 or newer, and libadwaita 1.5 or
+newer. These requirements follow its use of [Gtk.FileDialog](https://docs.gtk.org/gtk4/class.FileDialog.html)
+and [Adw.AlertDialog](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/class.AlertDialog.html).
+Install the bindings using the [PyGObject Fedora setup](https://pygobject.gnome.org/getting_started.html#fedora),
+plus libadwaita:
 
-The GTK4/libadwaita application is installed through the `localapp-gui` entry
-point. It provides application listing, AppImage/executable registration,
-portable and Python project forms, launch, details, edit, preview-first removal,
-doctor diagnostics, and read-only Gear Lever discovery. Registration work runs
-off the GTK main thread. Existing Gear Lever desktop entries are reused as
-external integration, so importing them does not create duplicate GNOME icons.
+```sh
+sudo dnf install python3-gobject gtk4 libadwaita
+```
 
-The original readiness review and remaining UI limitations are documented in
-[`docs/GUI_EVALUATION.md`](docs/GUI_EVALUATION.md).
+From the repository directory, create a separate environment using Fedora's
+system Python so it can access those bindings:
 
-Remaining post-MVP work is tracked in [`TODO.md`](TODO.md).
+```sh
+/usr/bin/python3 -m venv --system-site-packages .venv-gui
+. .venv-gui/bin/activate
+python -m pip install .
+localapp-gui
+```
+
+A graphical desktop session is required to open the window. Installing with pip
+creates commands, but does not install the manager's own GNOME launcher or icon.
+See [desktop launcher setup](docs/INSTALLATION.md) for that optional step and
+troubleshooting.
+
+## Quick start
+
+Register an already executable AppImage without moving it:
+
+```sh
+localapp add ~/Applications/MyTool.AppImage --id my-tool --name "My Tool"
+localapp list
+localapp show my-tool
+localapp run my-tool
+```
+
+To copy the app into managed storage instead, supply `--mode managed` when
+registering. The original source remains user-owned in either mode.
+
+Inspect app health and preview removal:
+
+```sh
+localapp doctor my-tool
+localapp remove my-tool
+```
+
+Removal only executes when you explicitly run `localapp remove my-tool --yes`.
+External inputs are preserved; unexpected contents in managed directories block
+complete cleanup and leave the manifest available for recovery.
+
+## Documentation
+
+- [Usage guide](docs/USAGE.md): portable folders, Python projects, editing,
+  diagnostics, Gear Lever import, storage paths, and removal.
+- [Installation details](docs/INSTALLATION.md): desktop launcher and troubleshooting.
+- [Contributing](CONTRIBUTING.md): development setup, tests, and code layout.
+- [GUI status](docs/GUI_EVALUATION.md): architecture and current limitations.
+- [Roadmap](TODO.md): planned improvements and project scope.
+
+Bug reports and contributions are welcome through
+[GitHub issues](https://github.com/hwoojo/LocalAppManager/issues) and pull requests.
+
+## License
+
+[MIT](LICENSE).
