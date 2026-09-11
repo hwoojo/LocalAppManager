@@ -99,7 +99,9 @@ def _publish_temporary(temporary_path: Path, destination: Path) -> None:
         os.link(temporary_path, destination)
         published = True
     except FileExistsError as exc:
-        raise FileCreationError(f"refusing to overwrite existing path: {destination}") from exc
+        raise FileCreationError(
+            f"refusing to overwrite existing path: {destination}"
+        ) from exc
     finally:
         temporary_path.unlink(missing_ok=True)
     if published:
@@ -182,7 +184,9 @@ def create_symlink(
     try:
         destination.symlink_to(target)
     except FileExistsError as exc:
-        raise FileCreationError(f"refusing to overwrite existing path: {destination}") from exc
+        raise FileCreationError(
+            f"refusing to overwrite existing path: {destination}"
+        ) from exc
     transaction.record_file(destination)
 
 

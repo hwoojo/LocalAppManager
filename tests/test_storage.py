@@ -62,7 +62,9 @@ def test_no_temporary_file_remains_after_save(
     store: ManifestStore, sample_manifest: AppManifest
 ) -> None:
     store.save(sample_manifest)
-    assert [path.name for path in store.paths.manifest_dir.iterdir()] == ["sample-app.json"]
+    assert [path.name for path in store.paths.manifest_dir.iterdir()] == [
+        "sample-app.json"
+    ]
 
 
 def test_create_failure_after_publish_removes_incomplete_registration(

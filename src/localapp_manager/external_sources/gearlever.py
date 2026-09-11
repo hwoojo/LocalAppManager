@@ -24,7 +24,9 @@ class GearLeverCandidate:
     startup_notify: bool
 
 
-def _desktop_for(name: str, applications_dir: Path, configured_source: Path) -> Path | None:
+def _desktop_for(
+    name: str, applications_dir: Path, configured_source: Path
+) -> Path | None:
     normalized = "".join(char.lower() for char in name if char.isalnum())
     matches: list[tuple[int, Path]] = []
     for path in applications_dir.glob("*.desktop"):
@@ -50,7 +52,11 @@ def _desktop_for(name: str, applications_dir: Path, configured_source: Path) -> 
                 break
         if score:
             matches.append((score, path))
-    return sorted(matches, key=lambda item: (-item[0], str(item[1])))[0][1] if matches else None
+    return (
+        sorted(matches, key=lambda item: (-item[0], str(item[1])))[0][1]
+        if matches
+        else None
+    )
 
 
 def _parse_desktop(path: Path | None) -> dict[str, object]:
@@ -68,8 +74,14 @@ def _parse_desktop(path: Path | None) -> dict[str, object]:
     if argv and argv[0] == "env":
         argv[0] = shutil.which("env") or "/usr/bin/env"
     icon_value = entry.get("Icon")
-    icon = Path(icon_value).expanduser() if icon_value and icon_value.startswith("/") else None
-    categories = tuple(value for value in entry.get("Categories", "Utility;").split(";") if value)
+    icon = (
+        Path(icon_value).expanduser()
+        if icon_value and icon_value.startswith("/")
+        else None
+    )
+    categories = tuple(
+        value for value in entry.get("Categories", "Utility;").split(";") if value
+    )
     return {
         "command": tuple(argv),
         "icon": icon,
@@ -85,7 +97,10 @@ def discover_gearlever(
     config_path: Path | None = None,
     applications_dir: Path | None = None,
 ) -> tuple[GearLeverCandidate, ...]:
-    config_path = config_path or Path.home() / ".var/app/it.mijorus.gearlever/config/gearlever.conf"
+    config_path = (
+        config_path
+        or Path.home() / ".var/app/it.mijorus.gearlever/config/gearlever.conf"
+    )
     applications_dir = applications_dir or Path.home() / ".local/share/applications"
     parser = configparser.ConfigParser(interpolation=None)
     if not parser.read(config_path, encoding="utf-8"):
@@ -95,7 +110,9 @@ def discover_gearlever(
         if not section.startswith("app."):
             continue
         name = parser.get(section, "name", fallback="").strip()
-        configured_source = Path(parser.get(section, "file_path", fallback="")).expanduser()
+        configured_source = Path(
+            parser.get(section, "file_path", fallback="")
+        ).expanduser()
         desktop = _desktop_for(name, applications_dir, configured_source)
         metadata = _parse_desktop(desktop)
         try_exec = metadata.get("try_exec")
@@ -107,7 +124,11 @@ def discover_gearlever(
             command = (str(source),)
         if not name or not source.exists():
             continue
-        kind = AppKind.APPIMAGE if source.name.lower().endswith(".appimage") else AppKind.EXECUTABLE
+        kind = (
+            AppKind.APPIMAGE
+            if source.name.lower().endswith(".appimage")
+            else AppKind.EXECUTABLE
+        )
         results.append(
             GearLeverCandidate(
                 name=name,
@@ -115,7 +136,9 @@ def discover_gearlever(
                 kind=kind,
                 command=command,
                 desktop_entry=desktop,
-                icon=metadata.get("icon") if isinstance(metadata.get("icon"), Path) else None,
+                icon=metadata.get("icon")
+                if isinstance(metadata.get("icon"), Path)
+                else None,
                 terminal=bool(metadata.get("terminal", False)),
                 categories=metadata.get("categories", ("Utility",)),
                 startup_notify=bool(metadata.get("startup_notify", True)),

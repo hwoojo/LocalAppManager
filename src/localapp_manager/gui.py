@@ -50,7 +50,9 @@ def _command_arguments(manifest: AppManifest) -> tuple[str, ...]:
 
 
 class FormDialog(Adw.Dialog):
-    def __init__(self, parent: Gtk.Widget, title: str, save_label: str = "등록") -> None:
+    def __init__(
+        self, parent: Gtk.Widget, title: str, save_label: str = "등록"
+    ) -> None:
         super().__init__()
         self.set_title(title)
         self.set_content_width(520)
@@ -136,7 +138,9 @@ class ManagerWindow(Adw.ApplicationWindow):
         for label, callback in items:
             button = Gtk.Button(label=label)
             button.set_halign(Gtk.Align.FILL)
-            button.connect("clicked", lambda _button, cb=callback: (popover.popdown(), cb()))
+            button.connect(
+                "clicked", lambda _button, cb=callback: (popover.popdown(), cb())
+            )
             box.append(button)
         popover.set_child(box)
         return popover
@@ -144,7 +148,9 @@ class ManagerWindow(Adw.ApplicationWindow):
     def toast(self, message: str) -> None:
         self.toast_overlay.add_toast(Adw.Toast(title=message, timeout=4))
 
-    def background(self, operation: Callable[[], object], success: Callable[[object], None]) -> None:
+    def background(
+        self, operation: Callable[[], object], success: Callable[[object], None]
+    ) -> None:
         def worker() -> None:
             try:
                 result = operation()
@@ -173,13 +179,17 @@ class ManagerWindow(Adw.ApplicationWindow):
                 image = Gtk.Image.new_from_file(manifest.icon_path)
                 image.set_pixel_size(36)
             else:
-                image = Gtk.Image.new_from_icon_name("application-x-executable-symbolic")
+                image = Gtk.Image.new_from_icon_name(
+                    "application-x-executable-symbolic"
+                )
                 image.set_pixel_size(32)
             row.add_prefix(image)
             run_button = _button("media-playback-start-symbolic", "실행")
             run_button.connect("clicked", lambda _b, item=manifest: self._run(item))
             row.add_suffix(run_button)
-            row.connect("activated", lambda _row, item=manifest: self._show_details(item))
+            row.connect(
+                "activated", lambda _row, item=manifest: self._show_details(item)
+            )
             self.listbox.append(row)
         self.stack.set_visible_child_name("list" if manifests else "empty")
 
@@ -209,7 +219,9 @@ class ManagerWindow(Adw.ApplicationWindow):
         group = dialog.group("기본 정보")
         name = Adw.EntryRow(title="표시 이름", text=path.stem)
         group.add(name)
-        managed = Adw.SwitchRow(title="관리 모드", subtitle="원본을 보존하고 관리 경로에 복사")
+        managed = Adw.SwitchRow(
+            title="관리 모드", subtitle="원본을 보존하고 관리 경로에 복사"
+        )
         group.add(managed)
         terminal = Adw.SwitchRow(title="터미널에서 실행")
         group.add(terminal)
@@ -224,7 +236,10 @@ class ManagerWindow(Adw.ApplicationWindow):
                     mode="managed" if managed.get_active() else "linked",
                     terminal=terminal.get_active(),
                 ),
-                lambda manifest: (self.refresh(), self.toast(f"{manifest.name} 등록 완료")),
+                lambda manifest: (
+                    self.refresh(),
+                    self.toast(f"{manifest.name} 등록 완료"),
+                ),
             )
 
         dialog.save_button.connect("clicked", save)
@@ -233,7 +248,9 @@ class ManagerWindow(Adw.ApplicationWindow):
         dialog = Gtk.FileDialog(title="Portable 앱 폴더 선택")
         dialog.select_folder(self, None, self._portable_selected)
 
-    def _portable_selected(self, dialog: Gtk.FileDialog, result: Gio.AsyncResult) -> None:
+    def _portable_selected(
+        self, dialog: Gtk.FileDialog, result: Gio.AsyncResult
+    ) -> None:
         try:
             folder = dialog.select_folder_finish(result)
         except GLib.Error:
@@ -254,10 +271,14 @@ class ManagerWindow(Adw.ApplicationWindow):
         group = dialog_form.group("실행 설정")
         name = Adw.EntryRow(title="표시 이름", text=root.name)
         group.add(name)
-        model = Gtk.StringList.new([candidate.relative_path for candidate in inspection.executables])
+        model = Gtk.StringList.new(
+            [candidate.relative_path for candidate in inspection.executables]
+        )
         executable = Adw.ComboRow(title="실행 파일", model=model)
         group.add(executable)
-        managed = Adw.SwitchRow(title="관리 모드", subtitle="폴더 전체를 관리 경로에 복사")
+        managed = Adw.SwitchRow(
+            title="관리 모드", subtitle="폴더 전체를 관리 경로에 복사"
+        )
         group.add(managed)
 
         def save(*_args) -> None:
@@ -271,7 +292,10 @@ class ManagerWindow(Adw.ApplicationWindow):
                     executable=selected,
                     mode="managed" if managed.get_active() else "linked",
                 ),
-                lambda manifest: (self.refresh(), self.toast(f"{manifest.name} 등록 완료")),
+                lambda manifest: (
+                    self.refresh(),
+                    self.toast(f"{manifest.name} 등록 완료"),
+                ),
             )
 
         dialog_form.save_button.connect("clicked", save)
@@ -312,7 +336,11 @@ class ManagerWindow(Adw.ApplicationWindow):
         def save(*_args) -> None:
             value = entrypoint.get_text().strip()
             dialog.close()
-            options = {"script": value} if entry_type.get_selected() == 0 else {"module": value}
+            options = (
+                {"script": value}
+                if entry_type.get_selected() == 0
+                else {"module": value}
+            )
             self.background(
                 lambda: register_python_project(
                     self.store,
@@ -322,7 +350,10 @@ class ManagerWindow(Adw.ApplicationWindow):
                     terminal=terminal.get_active(),
                     **options,
                 ),
-                lambda manifest: (self.refresh(), self.toast(f"{manifest.name} 등록 완료")),
+                lambda manifest: (
+                    self.refresh(),
+                    self.toast(f"{manifest.name} 등록 완료"),
+                ),
             )
 
         dialog.save_button.connect("clicked", save)
@@ -373,7 +404,10 @@ class ManagerWindow(Adw.ApplicationWindow):
             ("원본", manifest.source_path),
             ("실행 명령", shlex.join(manifest.command)),
             ("작업 폴더", manifest.working_directory or "기본값"),
-            ("Desktop 통합", "LocalAppManager" if manifest.integration_managed else "외부 앱 관리자"),
+            (
+                "Desktop 통합",
+                "LocalAppManager" if manifest.integration_managed else "외부 앱 관리자",
+            ),
         ]
         for title, value in values:
             group.add(Adw.ActionRow(title=title, subtitle=value))
@@ -387,11 +421,15 @@ class ManagerWindow(Adw.ApplicationWindow):
         action_row.add_suffix(run)
         if manifest.integration_managed:
             edit = Gtk.Button(label="편집", icon_name="document-edit-symbolic")
-            edit.connect("clicked", lambda *_: (dialog.close(), self._edit_form(manifest)))
+            edit.connect(
+                "clicked", lambda *_: (dialog.close(), self._edit_form(manifest))
+            )
             action_row.add_suffix(edit)
         remove = Gtk.Button(label="등록 제거", icon_name="user-trash-symbolic")
         remove.add_css_class("destructive-action")
-        remove.connect("clicked", lambda *_: (dialog.close(), self._confirm_remove(manifest)))
+        remove.connect(
+            "clicked", lambda *_: (dialog.close(), self._confirm_remove(manifest))
+        )
         action_row.add_suffix(remove)
         toolbar.set_content(page)
         dialog.set_child(toolbar)
@@ -436,7 +474,9 @@ class ManagerWindow(Adw.ApplicationWindow):
             return
         body_lines = [f"관리 파일 {len(plan.existing_targets)}개를 제거합니다."]
         if plan.preserved_external:
-            body_lines.append(f"원본·외부 경로 {len(plan.preserved_external)}개는 보존합니다.")
+            body_lines.append(
+                f"원본·외부 경로 {len(plan.preserved_external)}개는 보존합니다."
+            )
         if plan.unsafe_paths:
             body_lines.append("안전하지 않은 manifest 경로가 있어 제거할 수 없습니다.")
         alert = Adw.AlertDialog(
@@ -479,14 +519,18 @@ class ManagerWindow(Adw.ApplicationWindow):
             if alert_dialog.choose_finish(result) == "repair":
                 repaired, failures = repair(self.store)
                 self.refresh()
-                self.toast(f"{len(repaired)}개 앱을 복구했습니다. 실패 {len(failures)}개")
+                self.toast(
+                    f"{len(repaired)}개 앱을 복구했습니다. 실패 {len(failures)}개"
+                )
 
         alert.choose(self, None, chosen)
 
 
 class LocalAppApplication(Adw.Application):
     def __init__(self) -> None:
-        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+        super().__init__(
+            application_id=APP_ID, flags=Gio.ApplicationFlags.DEFAULT_FLAGS
+        )
 
     def do_activate(self) -> None:
         window = self.get_active_window()

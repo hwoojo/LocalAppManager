@@ -83,7 +83,9 @@ def _select_id(
         if explicit_id in store.list_ids() or not paths_are_available(
             _reserved_paths(store, explicit_id, mode, icon_suffix)
         ):
-            raise RegistrationError(f"application ID or managed path already exists: {explicit_id}")
+            raise RegistrationError(
+                f"application ID or managed path already exists: {explicit_id}"
+            )
         return explicit_id
 
     occupied = set(store.list_ids())
@@ -117,7 +119,9 @@ def register_file(
         install_mode = InstallMode(mode)
     except ValueError as exc:
         raise RegistrationError(f"unsupported install mode: {mode}") from exc
-    display_name = _default_name(source_path, app_kind) if name is None else name.strip()
+    display_name = (
+        _default_name(source_path, app_kind) if name is None else name.strip()
+    )
     if not display_name:
         raise SourceValidationError("application name must not be empty")
     icon_source = _validate_icon(icon)
@@ -189,14 +193,18 @@ def register_file(
                 kind=app_kind,
                 install_mode=install_mode,
                 source_path=str(source_path),
-                installed_path=str(installed_path) if installed_path is not None else None,
+                installed_path=str(installed_path)
+                if installed_path is not None
+                else None,
                 command=command,
                 icon_path=str(icon_path) if icon_path is not None else None,
                 desktop_entry_path=str(desktop_path),
                 managed_files=tuple(str(path) for path in transaction.created_paths),
                 managed_file_hashes=managed_hashes(transaction.created_paths),
                 external_paths=tuple(external_paths),
-                working_directory=str(working_path) if working_path is not None else None,
+                working_directory=str(working_path)
+                if working_path is not None
+                else None,
                 terminal=terminal,
                 categories=tuple(categories),
                 startup_notify=startup_notify,

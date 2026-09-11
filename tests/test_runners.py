@@ -57,4 +57,3 @@ def test_runner_reports_source_removed_after_registration(tmp_path: Path) -> Non
     source.unlink()
     with pytest.raises(RunError, match="does not exist"):
         run_app(manifest)
-

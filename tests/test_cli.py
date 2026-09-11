@@ -66,15 +66,18 @@ def test_run_command_forwards_arguments_after_separator(
     working_directory = tmp_path / "run-here"
     working_directory.mkdir()
 
-    assert main(
-        [
-            "add",
-            str(source),
-            "--working-directory",
-            str(working_directory),
-            "--arg=stored value",
-        ]
-    ) == 0
+    assert (
+        main(
+            [
+                "add",
+                str(source),
+                "--working-directory",
+                str(working_directory),
+                "--arg=stored value",
+            ]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     assert main(["run", "argument-recorder", "--", "--flag", "extra value"]) == 0
@@ -82,25 +85,30 @@ def test_run_command_forwards_arguments_after_separator(
     assert recorded == ["stored value", "--flag", "extra value"]
 
 
-def test_cli_managed_mode_copies_source_and_icon(monkeypatch, tmp_path: Path, capsys) -> None:
+def test_cli_managed_mode_copies_source_and_icon(
+    monkeypatch, tmp_path: Path, capsys
+) -> None:
     configure_isolated_home(monkeypatch, tmp_path)
     source = make_executable(tmp_path / "Managed Tool")
     icon = tmp_path / "tool.svg"
     icon.write_text("<svg/>", encoding="utf-8")
 
-    assert main(
-        [
-            "add",
-            str(source),
-            "--mode",
-            "managed",
-            "--icon",
-            str(icon),
-            "--category",
-            "Development",
-            "--no-startup-notify",
-        ]
-    ) == 0
+    assert (
+        main(
+            [
+                "add",
+                str(source),
+                "--mode",
+                "managed",
+                "--icon",
+                str(icon),
+                "--category",
+                "Development",
+                "--no-startup-notify",
+            ]
+        )
+        == 0
+    )
     assert "(executable, managed)" in capsys.readouterr().out
 
     assert main(["show", "managed-tool"]) == 0
@@ -141,9 +149,10 @@ def test_cli_adds_portable_folder_with_selected_executable(
     root = tmp_path / "Portable CLI"
     root.mkdir()
     source = make_executable(root / "launch")
-    assert main(
-        ["add", str(root), "--kind", "portable-folder", "--executable", "launch"]
-    ) == 0
+    assert (
+        main(["add", str(root), "--kind", "portable-folder", "--executable", "launch"])
+        == 0
+    )
     assert "(portable-folder, linked)" in capsys.readouterr().out
     assert main(["show", "portable-cli"]) == 0
     shown = json.loads(capsys.readouterr().out)
@@ -154,18 +163,21 @@ def test_cli_registers_python_module(monkeypatch, tmp_path: Path, capsys) -> Non
     configure_isolated_home(monkeypatch, tmp_path)
     project = tmp_path / "Python CLI"
     project.mkdir()
-    assert main(
-        [
-            "add",
-            str(project),
-            "--kind",
-            "python-project",
-            "--python",
-            sys.executable,
-            "--module",
-            "demo.app",
-        ]
-    ) == 0
+    assert (
+        main(
+            [
+                "add",
+                str(project),
+                "--kind",
+                "python-project",
+                "--python",
+                sys.executable,
+                "--module",
+                "demo.app",
+            ]
+        )
+        == 0
+    )
     assert "(python-project, linked)" in capsys.readouterr().out
     assert main(["show", "python-cli"]) == 0
     shown = json.loads(capsys.readouterr().out)
@@ -178,9 +190,10 @@ def test_cli_edit_and_doctor(monkeypatch, tmp_path: Path, capsys) -> None:
     source = make_executable(tmp_path / "Editable")
     assert main(["add", str(source)]) == 0
     capsys.readouterr()
-    assert main(
-        ["edit", "editable", "--name", "Edited", "--arg=new value", "--terminal"]
-    ) == 0
+    assert (
+        main(["edit", "editable", "--name", "Edited", "--arg=new value", "--terminal"])
+        == 0
+    )
     assert "Updated editable" in capsys.readouterr().out
     assert main(["doctor", "editable"]) == 0
     assert "OK: checked 1" in capsys.readouterr().out

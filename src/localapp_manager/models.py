@@ -28,7 +28,9 @@ class InstallMode(StrEnum):
 _ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
-def _require_string(value: Any, field_name: str, *, optional: bool = False) -> str | None:
+def _require_string(
+    value: Any, field_name: str, *, optional: bool = False
+) -> str | None:
     if value is None and optional:
         return None
     if not isinstance(value, str) or not value:
@@ -36,14 +38,18 @@ def _require_string(value: Any, field_name: str, *, optional: bool = False) -> s
     return value
 
 
-def _string_tuple(value: Any, field_name: str, *, nonempty: bool = False) -> tuple[str, ...]:
+def _string_tuple(
+    value: Any, field_name: str, *, nonempty: bool = False
+) -> tuple[str, ...]:
     if not isinstance(value, (list, tuple)):
         raise ManifestValidationError(f"{field_name} must be a list of strings")
     result = tuple(value)
     if nonempty and not result:
         raise ManifestValidationError(f"{field_name} must not be empty")
     if any(not isinstance(item, str) or not item for item in result):
-        raise ManifestValidationError(f"{field_name} must contain only non-empty strings")
+        raise ManifestValidationError(
+            f"{field_name} must contain only non-empty strings"
+        )
     return result
 
 
@@ -55,9 +61,13 @@ def _hash_tuple(value: Any) -> tuple[tuple[str, str], ...]:
     result: list[tuple[str, str]] = []
     for path, digest in value.items():
         if not isinstance(path, str) or not path:
-            raise ManifestValidationError("managed file hash paths must be non-empty strings")
+            raise ManifestValidationError(
+                "managed file hash paths must be non-empty strings"
+            )
         if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
-            raise ManifestValidationError("managed file hashes must be SHA-256 hex strings")
+            raise ManifestValidationError(
+                "managed file hashes must be SHA-256 hex strings"
+            )
         result.append((path, digest))
     return tuple(result)
 
@@ -105,7 +115,9 @@ class AppManifest:
         for field_name in ("name", "source_path"):
             value = getattr(self, field_name)
             if not isinstance(value, str) or not value:
-                raise ManifestValidationError(f"{field_name} must be a non-empty string")
+                raise ManifestValidationError(
+                    f"{field_name} must be a non-empty string"
+                )
         for field_name in (
             "installed_path",
             "icon_path",
@@ -130,18 +142,31 @@ class AppManifest:
             or not self.command
             or any(not isinstance(item, str) or not item for item in self.command)
         ):
-            raise ManifestValidationError("command must contain at least one non-empty argument")
-        if type(self.schema_version) is not int or self.schema_version != self.CURRENT_SCHEMA_VERSION:
+            raise ManifestValidationError(
+                "command must contain at least one non-empty argument"
+            )
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != self.CURRENT_SCHEMA_VERSION
+        ):
             raise ManifestValidationError(
                 f"unsupported schema version {self.schema_version}; "
                 f"expected {self.CURRENT_SCHEMA_VERSION}"
             )
-        if not isinstance(self.registered_at, datetime) or self.registered_at.tzinfo is None:
+        if (
+            not isinstance(self.registered_at, datetime)
+            or self.registered_at.tzinfo is None
+        ):
             raise ManifestValidationError("registered_at must include a timezone")
         for field_name in ("terminal", "startup_notify", "integration_managed"):
             if type(getattr(self, field_name)) is not bool:
                 raise ManifestValidationError(f"{field_name} must be a boolean")
-        for field_name in ("managed_files", "external_paths", "categories", "mime_types"):
+        for field_name in (
+            "managed_files",
+            "external_paths",
+            "categories",
+            "mime_types",
+        ):
             values = getattr(self, field_name)
             if not isinstance(values, tuple) or any(
                 not isinstance(item, str) or not item for item in values
@@ -150,10 +175,15 @@ class AppManifest:
                     f"{field_name} must be a tuple of non-empty strings"
                 )
             if len(values) != len(set(values)):
-                raise ManifestValidationError(f"{field_name} must not contain duplicates")
+                raise ManifestValidationError(
+                    f"{field_name} must not contain duplicates"
+                )
         if self.desktop_argument not in {None, "%f", "%F", "%u", "%U"}:
             raise ManifestValidationError("desktop_argument must be %f, %F, %u, or %U")
-        if any(";" in value or any(ord(char) < 32 for char in value) for value in self.mime_types):
+        if any(
+            ";" in value or any(ord(char) < 32 for char in value)
+            for value in self.mime_types
+        ):
             raise ManifestValidationError("mime_types contain an invalid value")
         for category in self.categories:
             if not all(char.isalnum() or char == "-" for char in category):
@@ -163,7 +193,8 @@ class AppManifest:
         overlap = set(self.managed_files).intersection(self.external_paths)
         if overlap:
             raise ManifestValidationError(
-                "a path cannot be both managed and external: " + ", ".join(sorted(overlap))
+                "a path cannot be both managed and external: "
+                + ", ".join(sorted(overlap))
             )
         python_fields = (
             self.python_interpreter,
@@ -176,7 +207,9 @@ class AppManifest:
                     "python projects require interpreter, entry type, and entrypoint"
                 )
             if self.python_entry_type not in {"script", "module"}:
-                raise ManifestValidationError("python_entry_type must be script or module")
+                raise ManifestValidationError(
+                    "python_entry_type must be script or module"
+                )
         elif any(value is not None for value in python_fields):
             raise ManifestValidationError(
                 "python execution fields are only valid for python projects"
@@ -188,7 +221,9 @@ class AppManifest:
                     "managed file hashes must uniquely reference managed_files"
                 )
             if not re.fullmatch(r"[0-9a-f]{64}", digest):
-                raise ManifestValidationError("managed file hashes must be SHA-256 hex strings")
+                raise ManifestValidationError(
+                    "managed file hashes must be SHA-256 hex strings"
+                )
             hash_paths.add(path)
         object.__setattr__(
             self, "managed_file_hashes", tuple(sorted(self.managed_file_hashes))
@@ -233,7 +268,9 @@ class AppManifest:
             registered_at_raw = _require_string(data["registered_at"], "registered_at")
             registered_at = datetime.fromisoformat(registered_at_raw)
         except KeyError as exc:
-            raise ManifestValidationError(f"missing required field: {exc.args[0]}") from exc
+            raise ManifestValidationError(
+                f"missing required field: {exc.args[0]}"
+            ) from exc
         except (TypeError, ValueError) as exc:
             raise ManifestValidationError(f"invalid manifest value: {exc}") from exc
 
@@ -259,13 +296,17 @@ class AppManifest:
                 data.get("installed_path"), "installed_path", optional=True
             ),
             command=_string_tuple(data.get("command"), "command", nonempty=True),
-            icon_path=_require_string(data.get("icon_path"), "icon_path", optional=True),
+            icon_path=_require_string(
+                data.get("icon_path"), "icon_path", optional=True
+            ),
             desktop_entry_path=_require_string(
                 data.get("desktop_entry_path"), "desktop_entry_path", optional=True
             ),
             registered_at=registered_at,
             managed_files=_string_tuple(data.get("managed_files", []), "managed_files"),
-            external_paths=_string_tuple(data.get("external_paths", []), "external_paths"),
+            external_paths=_string_tuple(
+                data.get("external_paths", []), "external_paths"
+            ),
             working_directory=_require_string(
                 data.get("working_directory"), "working_directory", optional=True
             ),

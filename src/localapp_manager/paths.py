@@ -24,7 +24,9 @@ class AppPaths:
         home: Path | None = None,
     ) -> "AppPaths":
         env = os.environ if environ is None else environ
-        resolved_home = Path(env.get("HOME", str(Path.home()))) if home is None else home
+        resolved_home = (
+            Path(env.get("HOME", str(Path.home()))) if home is None else home
+        )
 
         def xdg_path(variable: str, fallback: Path) -> Path:
             configured = env.get(variable)

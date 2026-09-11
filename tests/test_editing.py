@@ -43,7 +43,9 @@ def test_edit_updates_manifest_wrapper_and_desktop_together(
     )
     assert store.load(manifest.app_id) == updated
     assert updated.command == (str(source), "value with spaces", "$(literal)")
-    assert store.paths.wrapper_path(manifest.app_id).read_text() == build_wrapper(updated.command)
+    assert store.paths.wrapper_path(manifest.app_id).read_text() == build_wrapper(
+        updated.command
+    )
     desktop = store.paths.desktop_entry_path(manifest.app_id).read_text()
     assert "Name=New Name" in desktop
     assert "Terminal=true" in desktop
@@ -51,7 +53,9 @@ def test_edit_updates_manifest_wrapper_and_desktop_together(
     assert "StartupNotify=false" in desktop
 
 
-def test_edit_recreates_tracked_missing_integration(store: ManifestStore, tmp_path: Path) -> None:
+def test_edit_recreates_tracked_missing_integration(
+    store: ManifestStore, tmp_path: Path
+) -> None:
     manifest = register_file(store, executable(tmp_path / "Tool"))
     store.paths.wrapper_path(manifest.app_id).unlink()
     store.paths.desktop_entry_path(manifest.app_id).unlink()

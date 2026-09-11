@@ -33,7 +33,10 @@ def migrate_manifest_data(
         migrated.setdefault("integration_managed", True)
         migrated.setdefault("mime_types", [])
         migrated.setdefault("desktop_argument", None)
-        if migrated.get("kind") == "python-project" and not migrated["python_interpreter"]:
+        if (
+            migrated.get("kind") == "python-project"
+            and not migrated["python_interpreter"]
+        ):
             command = migrated.get("command", [])
             source = Path(migrated.get("source_path", "."))
             if len(command) >= 3 and command[1] == "-m":
@@ -44,7 +47,9 @@ def migrate_manifest_data(
                 migrated["python_interpreter"] = command[0]
                 migrated["python_entry_type"] = "script"
                 try:
-                    migrated["python_entrypoint"] = str(Path(command[1]).relative_to(source))
+                    migrated["python_entrypoint"] = str(
+                        Path(command[1]).relative_to(source)
+                    )
                 except ValueError:
                     migrated["python_entrypoint"] = command[1]
         migrated["schema_version"] = 2

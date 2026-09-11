@@ -90,7 +90,9 @@ def test_managed_portable_copies_tree_and_uses_managed_working_directory(
     assert (managed_root / "assets" / "data.txt").read_text() == "asset"
     assert (managed_root / "bin" / "data-link").is_symlink()
     assert os.readlink(managed_root / "bin" / "data-link") == "../assets/data.txt"
-    assert manifest.icon_path == str(store.paths.managed_icon_path(manifest.app_id, ".svg"))
+    assert manifest.icon_path == str(
+        store.paths.managed_icon_path(manifest.app_id, ".svg")
+    )
 
 
 def test_managed_portable_rejects_symlink_escaping_source_and_rolls_back(
@@ -107,7 +109,9 @@ def test_managed_portable_rejects_symlink_escaping_source_and_rolls_back(
     assert not store.paths.managed_app_dir("unsafe-portable").exists()
 
 
-def test_executable_selection_cannot_escape_folder(store: ManifestStore, tmp_path: Path) -> None:
+def test_executable_selection_cannot_escape_folder(
+    store: ManifestStore, tmp_path: Path
+) -> None:
     root = tmp_path / "Portable"
     root.mkdir()
     outside = executable(tmp_path / "outside")

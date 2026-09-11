@@ -8,7 +8,9 @@ from localapp_manager.desktop import build_desktop_entry, build_wrapper
 
 
 def test_wrapper_quotes_stored_command_and_forwards_runtime_arguments() -> None:
-    wrapper = build_wrapper(("/home/user/My Apps/tool", "value with spaces", "$(literal)"))
+    wrapper = build_wrapper(
+        ("/home/user/My Apps/tool", "value with spaces", "$(literal)")
+    )
     assert wrapper == (
         "#!/bin/sh\n"
         "exec '/home/user/My Apps/tool' 'value with spaces' '$(literal)' \"$@\"\n"

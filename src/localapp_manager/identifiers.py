@@ -24,4 +24,3 @@ def generate_app_id(name: str, existing_ids: Collection[str] = ()) -> str:
     while f"{base}-{suffix}" in existing_ids:
         suffix += 1
     return f"{base}-{suffix}"
-

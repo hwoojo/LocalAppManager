@@ -33,7 +33,9 @@ def test_relative_xdg_override_is_ignored() -> None:
 
 
 def test_ensure_manifest_dir_only_creates_storage_directory(tmp_path: Path) -> None:
-    paths = AppPaths.from_environment({"XDG_DATA_HOME": str(tmp_path / "data")}, home=tmp_path)
+    paths = AppPaths.from_environment(
+        {"XDG_DATA_HOME": str(tmp_path / "data")}, home=tmp_path
+    )
     paths.ensure_manifest_dir()
     assert paths.manifest_dir.is_dir()
     assert not paths.desktop_entry_dir.exists()

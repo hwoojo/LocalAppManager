@@ -65,7 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="stored application argument; repeat for multiple arguments",
     )
-    add_parser.add_argument("--working-directory", help="working directory used when running")
+    add_parser.add_argument(
+        "--working-directory", help="working directory used when running"
+    )
     add_parser.add_argument(
         "--executable",
         help="relative executable path for a portable folder",
@@ -74,13 +76,13 @@ def build_parser() -> argparse.ArgumentParser:
     python_entry = add_parser.add_mutually_exclusive_group()
     python_entry.add_argument("--script", help="relative Python entry script")
     python_entry.add_argument("--module", help="Python module to run with -m")
-    add_parser.add_argument("--icon", help="optional icon file to copy into managed storage")
+    add_parser.add_argument(
+        "--icon", help="optional icon file to copy into managed storage"
+    )
     add_parser.add_argument(
         "--mime-type", dest="mime_types", action="append", default=[]
     )
-    add_parser.add_argument(
-        "--desktop-argument", choices=("%f", "%F", "%u", "%U")
-    )
+    add_parser.add_argument("--desktop-argument", choices=("%f", "%F", "%u", "%U"))
     add_parser.add_argument(
         "--category",
         dest="categories",
@@ -121,12 +123,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="execute the displayed removal plan",
     )
-    edit_parser = subparsers.add_parser("edit", help="edit execution and desktop settings")
+    edit_parser = subparsers.add_parser(
+        "edit", help="edit execution and desktop settings"
+    )
     edit_parser.add_argument("app_id", help="application ID")
     edit_parser.add_argument("--name", help="new display name")
     argument_group = edit_parser.add_mutually_exclusive_group()
     argument_group.add_argument(
-        "--arg", dest="edit_arguments", action="append", default=None,
+        "--arg",
+        dest="edit_arguments",
+        action="append",
+        default=None,
         help="replace stored arguments; repeat for multiple arguments",
     )
     argument_group.add_argument("--clear-arguments", action="store_true")
@@ -149,10 +156,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--desktop-argument", choices=("%f", "%F", "%u", "%U"), default=None
     )
 
-    doctor_parser = subparsers.add_parser("doctor", help="diagnose registered applications")
+    doctor_parser = subparsers.add_parser(
+        "doctor", help="diagnose registered applications"
+    )
     doctor_parser.add_argument("app_id", nargs="?", help="optional application ID")
     doctor_parser.add_argument(
-        "--repair", action="store_true", help="repair safe integration files and migrate manifests"
+        "--repair",
+        action="store_true",
+        help="repair safe integration files and migrate manifests",
     )
     subparsers.add_parser(
         "import-gearlever",
@@ -223,8 +234,14 @@ def main(
                     **common_options,
                 )
             elif portable:
-                if args.python is not None or args.script is not None or args.module is not None:
-                    raise ValueError("Python entry options require --kind python-project")
+                if (
+                    args.python is not None
+                    or args.script is not None
+                    or args.module is not None
+                ):
+                    raise ValueError(
+                        "Python entry options require --kind python-project"
+                    )
                 manifest = register_portable_folder(
                     store,
                     args.source,
@@ -234,9 +251,16 @@ def main(
             else:
                 if any(
                     value is not None
-                    for value in (args.executable, args.python, args.script, args.module)
+                    for value in (
+                        args.executable,
+                        args.python,
+                        args.script,
+                        args.module,
+                    )
                 ):
-                    raise ValueError("entry selection options do not apply to executable files")
+                    raise ValueError(
+                        "entry selection options do not apply to executable files"
+                    )
                 manifest = register_file(
                     store,
                     args.source,
@@ -254,7 +278,10 @@ def main(
             return 0
         if args.command_name == "show":
             manifest = store.load(args.app_id)
-            print(json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2), file=output)
+            print(
+                json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2),
+                file=output,
+            )
             return 0
         if args.command_name == "run":
             extra_arguments = list(args.arguments)
@@ -273,7 +300,10 @@ def main(
             for path in plan.unsafe_paths:
                 print(f"  BLOCKED [unsafe manifest path] {path}", file=output)
             if plan.unsafe_paths:
-                print("Removal is blocked until the manifest is repaired.", file=error_output)
+                print(
+                    "Removal is blocked until the manifest is repaired.",
+                    file=error_output,
+                )
                 return 2
             if not args.yes:
                 print("Preview only. Re-run with --yes to execute.", file=output)
@@ -308,7 +338,9 @@ def main(
                 startup_notify=args.startup_notify,
                 mime_types=args.edit_mime_types,
                 desktop_argument=(
-                    args.desktop_argument if args.desktop_argument is not None else UNSET
+                    args.desktop_argument
+                    if args.desktop_argument is not None
+                    else UNSET
                 ),
             )
             print(f"Updated {manifest.app_id}.", file=output)

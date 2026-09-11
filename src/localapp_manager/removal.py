@@ -93,7 +93,9 @@ def build_removal_plan(store: ManifestStore, app_id: str) -> RemovalPlan:
     return RemovalPlan(
         manifest=manifest,
         targets=tuple(targets),
-        preserved_external=tuple(_absolute_lexical(path) for path in manifest.external_paths),
+        preserved_external=tuple(
+            _absolute_lexical(path) for path in manifest.external_paths
+        ),
         unsafe_paths=tuple(unsafe),
     )
 
@@ -134,4 +136,3 @@ def execute_removal(store: ManifestStore, plan: RemovalPlan) -> RemovalResult:
         failed=tuple(failed),
         manifest_removed=manifest_removed,
     )
-

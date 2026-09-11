@@ -85,9 +85,7 @@ def test_working_directory_is_validated_and_recorded_as_external(
     source = make_executable(tmp_path / "tool")
     working_directory = tmp_path / "project files"
     working_directory.mkdir()
-    manifest = register_linked_file(
-        store, source, working_directory=working_directory
-    )
+    manifest = register_linked_file(store, source, working_directory=working_directory)
     assert manifest.working_directory == str(working_directory.absolute())
     assert str(working_directory.absolute()) in manifest.external_paths
 

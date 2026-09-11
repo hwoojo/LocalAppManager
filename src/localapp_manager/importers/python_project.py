@@ -9,10 +9,19 @@ import re
 
 from ..desktop import build_desktop_entry, build_wrapper
 from ..errors import LocalAppError
-from ..fileops import CreationTransaction, atomic_copy, atomic_write_text, managed_hashes
+from ..fileops import (
+    CreationTransaction,
+    atomic_copy,
+    atomic_write_text,
+    managed_hashes,
+)
 from ..models import AppKind, AppManifest, InstallMode, ManifestValidationError
 from ..storage import ManifestStore
-from ..validation import SourceValidationError, absolute_user_path, validate_working_directory
+from ..validation import (
+    SourceValidationError,
+    absolute_user_path,
+    validate_working_directory,
+)
 from .file import _icon_suffix, _select_id, _validate_icon
 
 
@@ -50,7 +59,9 @@ def register_python_project(
     if not root.is_dir():
         raise SourceValidationError(f"Python project is not a directory: {root}")
     if mode != "linked":
-        raise PythonRegistrationError("Python projects currently support linked mode only")
+        raise PythonRegistrationError(
+            "Python projects currently support linked mode only"
+        )
     python = absolute_user_path(interpreter)
     if not python.is_file() or not os.access(python, os.X_OK):
         raise PythonRegistrationError(f"Python interpreter is not executable: {python}")
@@ -63,7 +74,9 @@ def register_python_project(
             raise PythonRegistrationError("--script must be a path inside the project")
         entry_script = root / relative_script
         if not entry_script.is_file() or entry_script.is_symlink():
-            raise PythonRegistrationError(f"entry script does not exist: {relative_script}")
+            raise PythonRegistrationError(
+                f"entry script does not exist: {relative_script}"
+            )
         entry_type = "script"
         entrypoint = str(relative_script)
         command = (str(python), str(entry_script), *tuple(arguments))
@@ -85,9 +98,7 @@ def register_python_project(
     )
     icon_source = _validate_icon(icon)
     suffix = _icon_suffix(icon_source) if icon_source is not None else None
-    selected_id = _select_id(
-        store, display_name, app_id, InstallMode.LINKED, suffix
-    )
+    selected_id = _select_id(store, display_name, app_id, InstallMode.LINKED, suffix)
 
     with CreationTransaction() as transaction:
         icon_path: Path | None = None

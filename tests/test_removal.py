@@ -33,7 +33,10 @@ def test_linked_removal_preserves_original_and_removes_integration(
     manifest = register_file(store, source, mode="linked")
     plan = build_removal_plan(store, manifest.app_id)
     assert plan.preserved_external == (source.absolute(),)
-    assert {target.role for target in plan.existing_targets} == {"wrapper", "desktop-entry"}
+    assert {target.role for target in plan.existing_targets} == {
+        "wrapper",
+        "desktop-entry",
+    }
 
     result = execute_removal(store, plan)
     assert result.manifest_removed
@@ -107,4 +110,3 @@ def test_unsafe_manifest_path_blocks_removal(
         execute_removal(store, plan)
     assert external_document.read_text() == "never delete"
     assert store.paths.wrapper_path(manifest.app_id).exists()
-

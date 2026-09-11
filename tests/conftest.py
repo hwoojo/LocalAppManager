@@ -21,4 +21,3 @@ def sample_manifest() -> AppManifest:
         managed_files=("/home/user/.local/share/applications/sample-app.desktop",),
         external_paths=("/home/user/My Apps/sample",),
     )
-

@@ -110,7 +110,11 @@ def test_generated_wrapper_executes_stored_and_runtime_argv_without_shell(
         shell=False,
     )
     assert completed.returncode == 0
-    assert json.loads(output.read_text()) == ["stored value", shell_like, "runtime value"]
+    assert json.loads(output.read_text()) == [
+        "stored value",
+        shell_like,
+        "runtime value",
+    ]
     assert not shell_target.exists()
 
 

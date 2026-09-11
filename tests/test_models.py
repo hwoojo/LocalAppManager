@@ -16,7 +16,9 @@ def test_command_preserves_arguments_and_spaces(sample_manifest: AppManifest) ->
     assert restored.command == ("/home/user/My Apps/sample", "--safe argument")
 
 
-def test_managed_and_external_paths_must_not_overlap(sample_manifest: AppManifest) -> None:
+def test_managed_and_external_paths_must_not_overlap(
+    sample_manifest: AppManifest,
+) -> None:
     with pytest.raises(ManifestValidationError, match="both managed and external"):
         replace(
             sample_manifest,
@@ -26,7 +28,10 @@ def test_managed_and_external_paths_must_not_overlap(sample_manifest: AppManifes
 
 def test_naive_registration_timestamp_is_rejected(sample_manifest: AppManifest) -> None:
     with pytest.raises(ManifestValidationError, match="timezone"):
-        replace(sample_manifest, registered_at=sample_manifest.registered_at.replace(tzinfo=None))
+        replace(
+            sample_manifest,
+            registered_at=sample_manifest.registered_at.replace(tzinfo=None),
+        )
 
 
 def test_unknown_schema_version_is_rejected(sample_manifest: AppManifest) -> None:
@@ -36,7 +41,9 @@ def test_unknown_schema_version_is_rejected(sample_manifest: AppManifest) -> Non
         AppManifest.from_dict(data)
 
 
-def test_direct_construction_validates_runtime_types(sample_manifest: AppManifest) -> None:
+def test_direct_construction_validates_runtime_types(
+    sample_manifest: AppManifest,
+) -> None:
     with pytest.raises(ManifestValidationError, match="terminal must be a boolean"):
         replace(sample_manifest, terminal="no")
 

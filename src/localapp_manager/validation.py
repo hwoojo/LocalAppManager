@@ -35,18 +35,25 @@ def validate_working_directory(path: str | Path) -> Path:
     if not directory.exists():
         raise SourceValidationError(f"working directory does not exist: {directory}")
     if not directory.is_dir():
-        raise SourceValidationError(f"working directory is not a directory: {directory}")
+        raise SourceValidationError(
+            f"working directory is not a directory: {directory}"
+        )
     return directory
 
 
 def detect_file_kind(source: Path, requested: str = "auto") -> AppKind:
     if requested == "auto":
-        return AppKind.APPIMAGE if source.name.lower().endswith(".appimage") else AppKind.EXECUTABLE
+        return (
+            AppKind.APPIMAGE
+            if source.name.lower().endswith(".appimage")
+            else AppKind.EXECUTABLE
+        )
     try:
         kind = AppKind(requested)
     except ValueError as exc:
-        raise SourceValidationError(f"unsupported linked file kind: {requested}") from exc
+        raise SourceValidationError(
+            f"unsupported linked file kind: {requested}"
+        ) from exc
     if kind not in (AppKind.APPIMAGE, AppKind.EXECUTABLE):
         raise SourceValidationError(f"unsupported linked file kind: {requested}")
     return kind
-

@@ -26,7 +26,8 @@ UNSET = object()
 
 def _manifest_bytes(manifest: AppManifest) -> bytes:
     return (
-        json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2, sort_keys=True)
+        + "\n"
     ).encode("utf-8")
 
 
@@ -41,7 +42,11 @@ def _ensure_integration_path_is_owned(
 ) -> None:
     if str(path) in manifest.managed_files or not (path.exists() or path.is_symlink()):
         return
-    if path.is_file() and not path.is_symlink() and path.read_bytes() == expected_current:
+    if (
+        path.is_file()
+        and not path.is_symlink()
+        and path.read_bytes() == expected_current
+    ):
         return
     raise EditError(f"refusing to replace untracked integration path: {path}")
 
@@ -106,7 +111,9 @@ def edit_app(
         icon_path=Path(current.icon_path) if current.icon_path else None,
         terminal=current.terminal if terminal is None else terminal,
         categories=current.categories if categories is None else tuple(categories),
-        startup_notify=current.startup_notify if startup_notify is None else startup_notify,
+        startup_notify=current.startup_notify
+        if startup_notify is None
+        else startup_notify,
         mime_types=current.mime_types if mime_types is None else tuple(mime_types),
         desktop_argument=(
             current.desktop_argument if desktop_argument is UNSET else desktop_argument
@@ -135,7 +142,9 @@ def edit_app(
             ),
             mime_types=current.mime_types if mime_types is None else tuple(mime_types),
             desktop_argument=(
-                current.desktop_argument if desktop_argument is UNSET else desktop_argument
+                current.desktop_argument
+                if desktop_argument is UNSET
+                else desktop_argument
             ),
             desktop_entry_path=str(desktop_path),
             managed_files=tuple(managed_files),

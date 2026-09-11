@@ -40,7 +40,9 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
     paths = (
         [store.manifest_path(app_id)]
         if app_id is not None
-        else sorted(directory.glob("*.json")) if directory.exists() else []
+        else sorted(directory.glob("*.json"))
+        if directory.exists()
+        else []
     )
     issues: list[DoctorIssue] = []
     manifests: list[AppManifest] = []
@@ -54,7 +56,10 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
             embedded = raw.get("app_id") if isinstance(raw, dict) else None
             if isinstance(embedded, str):
                 embedded_ids.setdefault(embedded, []).append(path)
-            if isinstance(raw, dict) and raw.get("schema_version") != AppManifest.CURRENT_SCHEMA_VERSION:
+            if (
+                isinstance(raw, dict)
+                and raw.get("schema_version") != AppManifest.CURRENT_SCHEMA_VERSION
+            ):
                 issues.append(
                     DoctorIssue(
                         "warning",
@@ -85,27 +90,47 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
         executable = Path(manifest.command[0])
         if not executable.exists():
             issues.append(
-                DoctorIssue("error", "executable-missing", manifest.app_id, str(executable))
+                DoctorIssue(
+                    "error", "executable-missing", manifest.app_id, str(executable)
+                )
             )
         elif not os.access(executable, os.X_OK):
             issues.append(
-                DoctorIssue("error", "executable-not-executable", manifest.app_id, str(executable))
+                DoctorIssue(
+                    "error",
+                    "executable-not-executable",
+                    manifest.app_id,
+                    str(executable),
+                )
             )
         if manifest.icon_path and not _exists(manifest.icon_path):
-            issues.append(DoctorIssue("warning", "icon-missing", manifest.app_id, manifest.icon_path))
+            issues.append(
+                DoctorIssue(
+                    "warning", "icon-missing", manifest.app_id, manifest.icon_path
+                )
+            )
         if manifest.installed_path and not _exists(manifest.installed_path):
             issues.append(
-                DoctorIssue("error", "installed-path-missing", manifest.app_id, manifest.installed_path)
+                DoctorIssue(
+                    "error",
+                    "installed-path-missing",
+                    manifest.app_id,
+                    manifest.installed_path,
+                )
             )
         for external in manifest.external_paths:
             if not _exists(external):
                 issues.append(
-                    DoctorIssue("warning", "external-path-missing", manifest.app_id, external)
+                    DoctorIssue(
+                        "warning", "external-path-missing", manifest.app_id, external
+                    )
                 )
         for managed in manifest.managed_files:
             if not _exists(managed):
                 issues.append(
-                    DoctorIssue("warning", "managed-path-missing", manifest.app_id, managed)
+                    DoctorIssue(
+                        "warning", "managed-path-missing", manifest.app_id, managed
+                    )
                 )
         for managed, expected_hash in manifest.managed_file_hashes:
             managed_path = Path(managed)
@@ -114,7 +139,12 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
                     actual_hash = sha256_file(managed_path)
                 except OSError as exc:
                     issues.append(
-                        DoctorIssue("error", "managed-file-unreadable", manifest.app_id, str(exc))
+                        DoctorIssue(
+                            "error",
+                            "managed-file-unreadable",
+                            manifest.app_id,
+                            str(exc),
+                        )
                     )
                 else:
                     if actual_hash != expected_hash:
@@ -147,7 +177,9 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
         expected_wrapper = build_wrapper(manifest.command)
         if not wrapper.exists():
             issues.append(
-                DoctorIssue("warning", "wrapper-missing", manifest.app_id, str(wrapper), True)
+                DoctorIssue(
+                    "warning", "wrapper-missing", manifest.app_id, str(wrapper), True
+                )
             )
         elif not wrapper.is_file() or wrapper.is_symlink():
             issues.append(
@@ -155,7 +187,9 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
             )
         elif wrapper.read_text(encoding="utf-8", errors="replace") != expected_wrapper:
             issues.append(
-                DoctorIssue("warning", "wrapper-mismatch", manifest.app_id, str(wrapper), True)
+                DoctorIssue(
+                    "warning", "wrapper-mismatch", manifest.app_id, str(wrapper), True
+                )
             )
         desktop = store.paths.desktop_entry_path(manifest.app_id)
         expected_desktop = build_desktop_entry(
@@ -170,7 +204,9 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
         )
         if not desktop.exists():
             issues.append(
-                DoctorIssue("warning", "desktop-missing", manifest.app_id, str(desktop), True)
+                DoctorIssue(
+                    "warning", "desktop-missing", manifest.app_id, str(desktop), True
+                )
             )
         elif not desktop.is_file() or desktop.is_symlink():
             issues.append(
@@ -178,14 +214,20 @@ def diagnose(store: ManifestStore, app_id: str | None = None) -> DoctorReport:
             )
         elif desktop.read_text(encoding="utf-8", errors="replace") != expected_desktop:
             issues.append(
-                DoctorIssue("warning", "desktop-mismatch", manifest.app_id, str(desktop), True)
+                DoctorIssue(
+                    "warning", "desktop-mismatch", manifest.app_id, str(desktop), True
+                )
             )
     return DoctorReport(tuple(checked), tuple(issues))
 
 
-def repair(store: ManifestStore, app_id: str | None = None) -> tuple[tuple[str, ...], tuple[str, ...]]:
+def repair(
+    store: ManifestStore, app_id: str | None = None
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
     report = diagnose(store, app_id)
-    corrupt = {issue.app_id for issue in report.issues if issue.code == "corrupt-manifest"}
+    corrupt = {
+        issue.app_id for issue in report.issues if issue.code == "corrupt-manifest"
+    }
     repaired: list[str] = []
     failures: list[str] = []
     for candidate in report.checked:

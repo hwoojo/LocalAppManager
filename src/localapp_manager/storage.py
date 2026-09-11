@@ -36,7 +36,9 @@ class ManifestStore:
     def manifest_path(self, app_id: str) -> Path:
         # AppManifest owns full validation; this guard also prevents traversal
         # before a manifest object exists.
-        if not app_id or any(char not in "abcdefghijklmnopqrstuvwxyz0123456789-" for char in app_id):
+        if not app_id or any(
+            char not in "abcdefghijklmnopqrstuvwxyz0123456789-" for char in app_id
+        ):
             raise ValueError("invalid application ID")
         if app_id.startswith("-") or app_id.endswith("-") or "--" in app_id:
             raise ValueError("invalid application ID")
@@ -45,9 +47,10 @@ class ManifestStore:
     def save(self, manifest: AppManifest, *, overwrite: bool = False) -> Path:
         directory = self.paths.ensure_manifest_dir()
         destination = self.manifest_path(manifest.app_id)
-        payload = json.dumps(
-            manifest.to_dict(), ensure_ascii=False, indent=2, sort_keys=True
-        ) + "\n"
+        payload = (
+            json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2, sort_keys=True)
+            + "\n"
+        )
 
         temporary_path: Path | None = None
         created_destination = False
@@ -101,7 +104,11 @@ class ManifestStore:
             manifest = AppManifest.from_dict(migrated_data)
         except FileNotFoundError as exc:
             raise ManifestNotFoundError(f"application not found: {app_id}") from exc
-        except (json.JSONDecodeError, UnicodeDecodeError, ManifestValidationError) as exc:
+        except (
+            json.JSONDecodeError,
+            UnicodeDecodeError,
+            ManifestValidationError,
+        ) as exc:
             raise CorruptManifestError(f"invalid manifest {path}: {exc}") from exc
         if manifest.app_id != app_id:
             raise CorruptManifestError(
@@ -112,7 +119,9 @@ class ManifestStore:
     def list_ids(self) -> tuple[str, ...]:
         if not self.paths.manifest_dir.exists():
             return ()
-        return tuple(sorted(path.stem for path in self.paths.manifest_dir.glob("*.json")))
+        return tuple(
+            sorted(path.stem for path in self.paths.manifest_dir.glob("*.json"))
+        )
 
     def list_manifests(self) -> tuple[AppManifest, ...]:
         return tuple(self.load(app_id) for app_id in self.list_ids())

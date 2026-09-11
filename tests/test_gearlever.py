@@ -10,7 +10,9 @@ from localapp_manager.removal import build_removal_plan, execute_removal
 from localapp_manager.storage import ManifestStore
 
 
-def test_discover_and_register_gearlever_without_duplicating_desktop(tmp_path: Path) -> None:
+def test_discover_and_register_gearlever_without_duplicating_desktop(
+    tmp_path: Path,
+) -> None:
     appimage = tmp_path / "apps" / "Example.AppImage"
     appimage.parent.mkdir()
     appimage.write_bytes(b"app")
@@ -30,7 +32,7 @@ def test_discover_and_register_gearlever_without_duplicating_desktop(tmp_path: P
     )
     config = tmp_path / "gearlever.conf"
     config.write_text(
-        "[app.123]\nname = Example\n" f"file_path = {appimage}\n",
+        f"[app.123]\nname = Example\nfile_path = {appimage}\n",
         encoding="utf-8",
     )
     candidates = discover_gearlever(config_path=config, applications_dir=applications)

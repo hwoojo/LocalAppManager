@@ -21,7 +21,11 @@ from ..fileops import (
 )
 from ..models import AppKind, AppManifest, InstallMode, ManifestValidationError
 from ..storage import ManifestStore
-from ..validation import SourceValidationError, absolute_user_path, validate_working_directory
+from ..validation import (
+    SourceValidationError,
+    absolute_user_path,
+    validate_working_directory,
+)
 from .file import _icon_suffix, _select_id, _validate_icon
 
 
@@ -69,7 +73,9 @@ def inspect_portable_folder(source: str | Path) -> PortableInspection:
     desktop_exec_names: set[str] = set()
     for desktop in desktop_files:
         try:
-            for line in desktop.read_text(encoding="utf-8", errors="replace").splitlines():
+            for line in desktop.read_text(
+                encoding="utf-8", errors="replace"
+            ).splitlines():
                 if line.startswith("Exec="):
                     argv = shlex.split(line[5:])
                     if argv:
@@ -90,7 +96,9 @@ def inspect_portable_folder(source: str | Path) -> PortableInspection:
         if candidate_name and candidate_name == root_name:
             score += 40
             reasons.append("matches folder name")
-        elif candidate_name and (candidate_name in root_name or root_name in candidate_name):
+        elif candidate_name and (
+            candidate_name in root_name or root_name in candidate_name
+        ):
             score += 20
             reasons.append("similar to folder name")
         if path.name in desktop_exec_names:
@@ -100,9 +108,7 @@ def inspect_portable_folder(source: str | Path) -> PortableInspection:
             score -= 30
             reasons.append("shared-library-like name")
         score -= max(0, len(relative.parts) - 1)
-        candidates.append(
-            ExecutableCandidate(str(relative), score, tuple(reasons))
-        )
+        candidates.append(ExecutableCandidate(str(relative), score, tuple(reasons)))
     candidates.sort(key=lambda item: (-item.score, item.relative_path))
     return PortableInspection(
         executables=tuple(candidates),
@@ -118,17 +124,28 @@ def _select_executable(
         if not inspection.executables:
             raise PortableRegistrationError("no executable candidates found")
         if len(inspection.executables) != 1:
-            choices = ", ".join(candidate.relative_path for candidate in inspection.executables)
+            choices = ", ".join(
+                candidate.relative_path for candidate in inspection.executables
+            )
             raise PortableRegistrationError(
-                "multiple executable candidates; choose one with --executable: " + choices
+                "multiple executable candidates; choose one with --executable: "
+                + choices
             )
         selected = inspection.executables[0].relative_path
     relative = Path(selected)
     if relative.is_absolute() or ".." in relative.parts:
-        raise PortableRegistrationError("--executable must be a path inside the portable folder")
+        raise PortableRegistrationError(
+            "--executable must be a path inside the portable folder"
+        )
     executable = root / relative
-    if executable.is_symlink() or not executable.is_file() or not os.access(executable, os.X_OK):
-        raise PortableRegistrationError(f"selected path is not an executable file: {relative}")
+    if (
+        executable.is_symlink()
+        or not executable.is_file()
+        or not os.access(executable, os.X_OK)
+    ):
+        raise PortableRegistrationError(
+            f"selected path is not an executable file: {relative}"
+        )
     return executable
 
 
@@ -248,7 +265,9 @@ def register_portable_folder(
         )
 
         external_paths = [str(root)]
-        if icon_source is not None and not (icon_source == root or root in icon_source.parents):
+        if icon_source is not None and not (
+            icon_source == root or root in icon_source.parents
+        ):
             external_paths.append(str(icon_source))
         if explicit_working is not None and str(explicit_working) not in external_paths:
             external_paths.append(str(explicit_working))
@@ -259,7 +278,9 @@ def register_portable_folder(
                 kind=AppKind.PORTABLE_FOLDER,
                 install_mode=install_mode,
                 source_path=str(root),
-                installed_path=str(installed_path) if installed_path is not None else None,
+                installed_path=str(installed_path)
+                if installed_path is not None
+                else None,
                 command=command,
                 icon_path=str(icon_path) if icon_path is not None else None,
                 desktop_entry_path=str(desktop_path),

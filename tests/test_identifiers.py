@@ -12,4 +12,3 @@ def test_non_ascii_name_has_safe_fallback() -> None:
 def test_duplicate_id_uses_first_available_suffix() -> None:
     existing = {"sample", "sample-2", "sample-4"}
     assert generate_app_id("Sample", existing) == "sample-3"
-

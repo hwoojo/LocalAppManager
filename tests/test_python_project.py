@@ -103,16 +103,22 @@ def test_python_registration_does_not_create_or_modify_environment(
     project.mkdir()
     script = project / "app.py"
     script.write_text("pass\n", encoding="utf-8")
-    before = {path.relative_to(project): path.read_bytes() for path in project.rglob("*")}
+    before = {
+        path.relative_to(project): path.read_bytes() for path in project.rglob("*")
+    }
     manifest = register_python_project(
         store, project, interpreter=sys.executable, script="app.py"
     )
-    after = {path.relative_to(project): path.read_bytes() for path in project.rglob("*")}
+    after = {
+        path.relative_to(project): path.read_bytes() for path in project.rglob("*")
+    }
     assert before == after
     assert manifest.external_paths[0] == str(project)
 
 
-def test_managed_mode_is_explicitly_rejected(store: ManifestStore, tmp_path: Path) -> None:
+def test_managed_mode_is_explicitly_rejected(
+    store: ManifestStore, tmp_path: Path
+) -> None:
     project = tmp_path / "Project"
     project.mkdir()
     (project / "app.py").write_text("pass\n", encoding="utf-8")

@@ -47,7 +47,9 @@ def test_doctor_continues_after_corrupt_manifest(tmp_path: Path) -> None:
     assert any(issue.code == "corrupt-manifest" for issue in report.issues)
 
 
-def test_doctor_repair_recreates_integration_and_persists_migration(tmp_path: Path) -> None:
+def test_doctor_repair_recreates_integration_and_persists_migration(
+    tmp_path: Path,
+) -> None:
     store = store_for(tmp_path)
     manifest = register_file(store, executable(tmp_path / "Tool"))
     manifest_path = store.manifest_path(manifest.app_id)
@@ -70,7 +72,9 @@ def test_doctor_detects_duplicate_embedded_ids(tmp_path: Path) -> None:
     store = store_for(tmp_path)
     manifest = register_file(store, executable(tmp_path / "Tool"))
     raw = json.loads(store.manifest_path(manifest.app_id).read_text())
-    (store.paths.manifest_dir / "copy.json").write_text(json.dumps(raw), encoding="utf-8")
+    (store.paths.manifest_dir / "copy.json").write_text(
+        json.dumps(raw), encoding="utf-8"
+    )
     report = diagnose(store)
     assert any(issue.code == "duplicate-id" for issue in report.issues)
 
